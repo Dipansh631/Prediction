@@ -27,6 +27,9 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
+  preview: {
+    allowedHosts: ['predict-before-buy.onrender.com', 'localhost', '127.0.0.1'],
+  },
   plugins: [
     react(),
     mode === 'development' &&
