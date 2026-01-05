@@ -822,6 +822,10 @@ export class GeminiAiService {
     const match = prompt.match(/Analyze this search query:\s*"([^"]+)"/);
     return match ? match[1] : 'general product';
   }
+
+  private generateMockResponse(prompt: string): string {
+    // Generate contextual mock responses based on the prompt
+    const lowerPrompt = prompt.toLowerCase();
     
     if (lowerPrompt.includes('chat') || lowerPrompt.includes('assistant')) {
       return "Hello! I'm your AI shopping assistant. I can help you with product recommendations, price analysis, market trends, and shopping advice. What would you like to know about today?";
