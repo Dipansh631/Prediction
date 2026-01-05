@@ -118,8 +118,15 @@ export class GeminiAiService {
 
   public async makeApiRequest(prompt: string): Promise<any> {
     if (this.useMockData) {
-      // Return a mock response instead of throwing an error
-      return this.generateMockResponse(prompt);
+      // Check if this is a structured data request (contains JSON structure keywords)
+      if (prompt.includes('"enhancedQuery"') || prompt.includes('"categories"') || prompt.includes('"marketAnalysis"')) {
+        // This is likely an enhanceSearchQuery request - return structured mock data
+        const query = this.extractQueryFromPrompt(prompt);
+        return this.generateMockSmartSearchResult(query);
+      } else {
+        // Return a mock response string for chat/general requests
+        return this.generateMockResponse(prompt);
+      }
     }
 
     const controller = new AbortController();
@@ -389,6 +396,11 @@ export class GeminiAiService {
       `;
 
       const response = await this.makeApiRequest(prompt);
+      
+      // Check if response is already a mock SmartSearchResult object (from fallback)
+      if (typeof response === 'object' && response.enhancedQuery) {
+        return response as SmartSearchResult;
+      }
       
       try {
         const result = this.safeJsonParse(response);
@@ -805,9 +817,11 @@ export class GeminiAiService {
     return tips;
   }
 
-  private generateMockResponse(prompt: string): string {
-    // Generate contextual mock responses based on the prompt
-    const lowerPrompt = prompt.toLowerCase();
+  private extractQueryFromPrompt(prompt: string): string {
+    // Extract the query from prompts like: Analyze this search query: "detector"
+    const match = prompt.match(/Analyze this search query:\s*"([^"]+)"/);
+    return match ? match[1] : 'general product';
+  }
     
     if (lowerPrompt.includes('chat') || lowerPrompt.includes('assistant')) {
       return "Hello! I'm your AI shopping assistant. I can help you with product recommendations, price analysis, market trends, and shopping advice. What would you like to know about today?";

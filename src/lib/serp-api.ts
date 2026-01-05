@@ -2,8 +2,8 @@
 import { config } from './config';
 
 const SERP_API_KEY = config.serp.apiKey;
-// Use a reliable CORS proxy for production
-const SERP_BASE_URL = import.meta.env.DEV ? '/api/serp/search.json' : 'https://thingproxy.freeboard.io/fetch/https://serpapi.com/search.json';
+// Base URL for development proxy
+const SERP_BASE_URL = import.meta.env.DEV ? '/api/serp/search.json' : '';
 
 export interface SerpProduct {
   title: string;
@@ -145,7 +145,23 @@ export class SerpApiService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const responseData = await response.json();
+      
+      // Handle allorigins.win proxy response format
+      if (!import.meta.env.DEV && url.includes('allorigins.win')) {
+        if (responseData.contents) {
+          try {
+            return JSON.parse(responseData.contents);
+          } catch (parseError) {
+            console.error('Failed to parse allorigins response contents:', parseError);
+            throw new Error('Invalid response format from proxy');
+          }
+        } else {
+          throw new Error('Invalid response from allorigins proxy');
+        }
+      }
+      
+      return responseData;
     } catch (error) {
       clearTimeout(timeoutId);
       
@@ -209,8 +225,13 @@ export class SerpApiService {
           data = await this.makeApiRequest(config.serp.baseUrl, params);
         }
       } else {
-        // In production, use direct API
-        data = await this.makeApiRequest(SERP_BASE_URL, params);
+        // In production, use CORS proxy
+        const proxyUrl = 'https://api.allorigins.win/get';
+        const targetUrl = `${config.serp.baseUrl}?${params}`;
+        const proxyParams = new URLSearchParams({
+          url: targetUrl
+        });
+        data = await this.makeApiRequest(proxyUrl, proxyParams);
       }
       
       if (data.error) {
