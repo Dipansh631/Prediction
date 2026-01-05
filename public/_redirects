@@ -1,7 +1,8 @@
 /*    /index.html   200
-!/favicon.ico  /favicon.ico  200
-!/favicon.svg  /favicon.svg  200
-!/robots.txt   /robots.txt   200
-!/og-image.svg /og-image.svg 200
-!/logo.svg     /logo.svg     200
+!/assets/*     /assets/:splat  200
+!/favicon.ico  /favicon.ico    200
+!/favicon.svg  /favicon.svg    200
+!/robots.txt   /robots.txt     200
+!/og-image.svg /og-image.svg   200
+!/logo.svg     /logo.svg       200
 !/placeholder.svg /placeholder.svg 200
