@@ -147,6 +147,20 @@ export class SerpApiService {
 
       const responseData = await response.json();
       
+      // Handle allorigins.win proxy response format
+      if (!import.meta.env.DEV && url.includes('allorigins.win')) {
+        if (responseData.contents) {
+          try {
+            return JSON.parse(responseData.contents);
+          } catch (parseError) {
+            console.error('Failed to parse allorigins response contents:', parseError);
+            throw new Error('Invalid response format from proxy');
+          }
+        } else {
+          throw new Error('Invalid response from allorigins proxy');
+        }
+      }
+      
       return responseData;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -165,20 +179,6 @@ export class SerpApiService {
   }
 
   async searchProducts(query: string, location: string = 'India'): Promise<SerpSearchResult> {
-    // HARD PRODUCTION GUARD: Never make external API calls in production
-    if (import.meta.env.PROD) {
-      const mockProducts = this.generateMockProducts(query);
-
-      return {
-        products: mockProducts,
-        total_results: mockProducts.length,
-        search_metadata: {
-          status: 'Success (Production Mock Data)',
-          created_at: new Date().toISOString()
-        }
-      };
-    }
-
     try {
       if (config.debug.enabled) {
         console.log('Searching products with query:', query, 'API Key present:', !!this.apiKey);
@@ -224,6 +224,14 @@ export class SerpApiService {
           // Fallback to direct API in development
           data = await this.makeApiRequest(config.serp.baseUrl, params);
         }
+      } else {
+        // In production, use CORS proxy
+        const proxyUrl = 'https://api.allorigins.win/get';
+        const targetUrl = `${config.serp.baseUrl}?${params}`;
+        const proxyParams = new URLSearchParams({
+          url: targetUrl
+        });
+        data = await this.makeApiRequest(proxyUrl, proxyParams);
       }
       
       if (data.error) {

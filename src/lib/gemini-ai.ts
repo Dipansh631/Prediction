@@ -869,143 +869,32 @@ export class GeminiAiService {
     return match ? match[1] : 'general product';
   }
 
-  private extractUserQuestion(prompt: string): string {
-    // Extract the actual user question from the AI prompt
-    // Look for patterns like "The user asked: "..." or "user asked: "...""
-    const userQuestionMatch = prompt.match(/(?:user asked|user says|user is asking|user question):\s*"([^"]+)"/i);
-    if (userQuestionMatch) {
-      return userQuestionMatch[1];
-    }
-
-    // Fallback: try to find quoted text
-    const quotedMatch = prompt.match(/"([^"]+)"/);
-    if (quotedMatch) {
-      return quotedMatch[1];
-    }
-
-    // Last resort: return the whole prompt
-    return prompt;
-  }
-
   private generateMockResponse(prompt: string): string {
-    // Generate contextual, conversational mock responses based on the prompt
+    // Generate contextual mock responses based on the prompt
     const lowerPrompt = prompt.toLowerCase();
-
-    // Extract user question from the prompt (remove context and instructions)
-    const userQuestion = this.extractUserQuestion(prompt);
-    const lowerQuestion = userQuestion.toLowerCase();
-
-    // Handle greetings and introductions
-    if (lowerQuestion.includes('hello') || lowerQuestion.includes('hi') || lowerQuestion.includes('hey') ||
-        lowerQuestion.includes('start') || lowerQuestion.includes('begin')) {
-      const greetings = [
-        "Hi there! 👋 I'm excited to help you find the perfect products. What are you shopping for today?",
-        "Hello! Welcome to your personal shopping assistant. I can help you discover great deals and make smart purchasing decisions. What interests you?",
-        "Hey! I'm here to make your shopping experience amazing. Whether you're looking for the latest gadgets, fashion, or home essentials, I've got you covered. What's on your shopping list?",
-        "Hi! Thanks for chatting with me. I love helping people find exactly what they need at the best prices. What can I help you discover today?"
-      ];
-      return greetings[Math.floor(Math.random() * greetings.length)];
+    
+    if (lowerPrompt.includes('chat') || lowerPrompt.includes('assistant')) {
+      return "Hello! I'm your AI shopping assistant. I can help you with product recommendations, price analysis, market trends, and shopping advice. What would you like to know about today?";
     }
-    // Handle questions about specific product categories
-    if (lowerQuestion.includes('phone') || lowerQuestion.includes('smartphone') || lowerQuestion.includes('mobile')) {
-      const phoneResponses = [
-        "Smartphones are constantly evolving! Right now, I'd recommend looking at the latest iPhone 15 series or Samsung Galaxy S24 lineup. Both offer excellent cameras, performance, and battery life. The iPhone 15 Pro starts around ₹1,30,000, while Samsung's flagship is about ₹1,00,000. Which features matter most to you - camera, battery, or gaming performance?",
-        "When it comes to phones, it really depends on your budget and needs. For premium users, the iPhone 15 Pro Max offers the best camera and ecosystem integration. If you're looking for great value, Samsung Galaxy S24 Ultra gives you similar features at a lower price point. Both are excellent choices with 5G support and long-term software updates.",
-        "Phone shopping can be overwhelming with so many options! Let me help you narrow it down. Are you upgrading from an older phone, or is this your first smartphone? Also, what's your budget range? This will help me give you more targeted recommendations."
-      ];
-      return phoneResponses[Math.floor(Math.random() * phoneResponses.length)];
+    
+    if (lowerPrompt.includes('iphone') || lowerPrompt.includes('smartphone')) {
+      return "Based on current market trends, iPhones typically see price drops during festive seasons (October-December) and when new models are announced. The iPhone 15 series offers excellent value with advanced features. Consider checking for student discounts and exchange offers for better deals.";
     }
-    if (lowerQuestion.includes('laptop') || lowerQuestion.includes('computer') || lowerQuestion.includes('macbook')) {
-      const laptopResponses = [
-        "Laptops are such a personal choice! For students and general use, I'd recommend the MacBook Air M2 - it's lightweight, has amazing battery life (up to 18 hours), and handles everything from browsing to light video editing. It starts at around ₹1,10,000. If you need more power for gaming or professional work, consider a Windows laptop with dedicated graphics.",
-        "The laptop market has something for everyone. If you're into the Apple ecosystem and value design, the MacBook Pro M3 is incredible for creative work. For gaming, look at ASUS ROG or MSI laptops. And for everyday use, Lenovo ThinkPad or Dell XPS series offer great reliability. What's your primary use case - work, gaming, or general browsing?",
-        "Great question about laptops! Current trends show that Apple Silicon Macs are dominating for their efficiency, while gaming laptops from ASUS and MSI offer incredible performance. For business users, ThinkPad reliability is unmatched. Do you have a preference for Windows, macOS, or are you open to both?"
-      ];
-      return laptopResponses[Math.floor(Math.random() * laptopResponses.length)];
+    
+    if (lowerPrompt.includes('laptop') || lowerPrompt.includes('macbook')) {
+      return "Laptops often have the best deals during back-to-school seasons and Black Friday sales. MacBooks are premium devices with excellent build quality and performance. Consider refurbished options for significant savings while maintaining warranty coverage.";
     }
-    // Handle price and deal questions
-    if (lowerQuestion.includes('price') || lowerQuestion.includes('cost') || lowerQuestion.includes('expensive') ||
-        lowerQuestion.includes('cheap') || lowerQuestion.includes('budget') || lowerQuestion.includes('deal')) {
-      const priceResponses = [
-        "Smart shopping is all about timing! Prices typically drop during major sales like Amazon Great Indian Festival, Flipkart Big Billion Days, and festive seasons (October-December). Right now, you can find up to 40% off on electronics. Also, check for bank offers, exchange deals, and student discounts. What product are you interested in?",
-        "The best deals happen during shopping festivals! We're currently in a good period with various offers running. Electronics see the biggest discounts (up to 50% off), followed by fashion and home goods. Pro tip: Set price alerts on apps and wait for sales rather than buying at full price. What's your budget for what you're looking for?",
-        "Price comparison is crucial in India! Amazon, Flipkart, Croma, and Vijay Sales often have competing offers. Don't forget about cashback apps like CashKaro and bank credit card rewards. For big purchases, EMI options can make expensive items more affordable. What category interests you most?"
-      ];
-      return priceResponses[Math.floor(Math.random() * priceResponses.length)];
+    
+    if (lowerPrompt.includes('price') || lowerPrompt.includes('deal')) {
+      return "For the best deals, I recommend comparing prices across multiple platforms like Amazon, Flipkart, and official brand stores. Look for cashback offers, student discounts, and exchange programs. Prices typically drop during festive seasons and when new models are launched.";
     }
-    // Handle audio and headphones questions
-    if (lowerQuestion.includes('audio') || lowerQuestion.includes('headphone') || lowerQuestion.includes('earphone') ||
-        lowerQuestion.includes('speaker') || lowerQuestion.includes('sound')) {
-      const audioResponses = [
-        "Audio quality can make or break your experience! For wireless earbuds, the Sony WF-1000XM5 offers incredible noise cancellation and sound quality, though they're pricey at ₹25,000+. If you're on a budget, OnePlus Buds Pro 2 gives great value at ₹10,000. For over-ear headphones, Bose QuietComfort Ultra delivers premium comfort and ANC.",
-        "When it comes to audio gear, it depends on your usage. For commuting and calls, I'd recommend true wireless earbuds with good ANC. For music production or critical listening, over-ear headphones with high-end drivers are better. Sony and Bose dominate the premium segment, while brands like boAt and Noise offer affordable alternatives with decent quality.",
-        "Audio shopping is exciting! Current favorites include Sony WH-1000XM5 for noise cancellation, Bose QuietComfort for comfort, and Apple AirPods Pro for seamless iPhone integration. Don't forget to check reviews for fit and battery life. What type of audio gear are you looking for - earbuds, headphones, or speakers?"
-      ];
-      return audioResponses[Math.floor(Math.random() * audioResponses.length)];
+    
+    if (lowerPrompt.includes('recommend') || lowerPrompt.includes('suggestion')) {
+      return "Here are some great product recommendations: 1) For smartphones: Consider the latest iPhone or Samsung Galaxy series for premium features, 2) For laptops: MacBook Air for portability or Dell XPS for Windows users, 3) For headphones: Sony WH-1000XM4 for excellent noise cancellation.";
     }
-
-    // Handle trend and market questions
-    if (lowerQuestion.includes('trend') || lowerQuestion.includes('popular') || lowerQuestion.includes('hot') ||
-        lowerQuestion.includes('new') || lowerQuestion.includes('latest')) {
-      const trendResponses = [
-        "2024 is all about AI integration and sustainability! Smartphones with advanced cameras, foldable displays, and AI features are trending. In laptops, Apple Silicon Macs are dominating, while gaming laptops with RTX 40-series GPUs are hot. Sustainable products and energy-efficient appliances are also gaining popularity.",
-        "Current shopping trends show strong demand for: 1) AI-powered devices (smartphones, smart home gadgets), 2) Sustainable and eco-friendly products, 3) Foldable phones and flexible displays, 4) High-refresh-rate gaming monitors, 5) Wireless charging everywhere. What category interests you most?",
-        "The market is evolving rapidly! Right now, we're seeing a surge in demand for electric vehicles, smart home automation, and AI assistants. In consumer electronics, 8K TVs and high-end gaming PCs are popular. Fashion trends lean towards sustainable materials and versatile athleisure wear. What's catching your eye?"
-      ];
-      return trendResponses[Math.floor(Math.random() * trendResponses.length)];
-    }
-
-    // Handle comparison questions
-    if (lowerQuestion.includes('compare') || lowerQuestion.includes('vs') || lowerQuestion.includes('versus') ||
-        lowerQuestion.includes('better') || lowerQuestion.includes('which is')) {
-      const compareResponses = [
-        "Great question for comparisons! To give you the best advice, I need to know what you're comparing. For example: iPhone vs Samsung (iPhone wins on ecosystem, Samsung on value), MacBook vs Windows laptops (Mac for creative work, Windows for gaming), or specific models? What products are you considering?",
-        "Comparisons help make informed decisions! Generally, I compare based on: performance, price, build quality, software support, and user reviews. Apple products excel in ecosystem integration and long-term support, while Android/Windows offer more customization. Premium brands like Sony and Bose focus on quality, while budget brands prioritize value. What are you comparing?",
-        "Smart comparisons save money and buyer's remorse! Key factors include: 1) Performance vs price ratio, 2) Build quality and durability, 3) Software updates and support, 4) User reviews and ratings, 5) Warranty and after-sales service. Indian market favorites include Samsung for value, Apple for premium, and OnePlus for performance. What would you like me to compare?"
-      ];
-      return compareResponses[Math.floor(Math.random() * compareResponses.length)];
-    }
-
-    // Handle warranty and support questions
-    if (lowerQuestion.includes('warranty') || lowerQuestion.includes('support') || lowerQuestion.includes('service') ||
-        lowerQuestion.includes('repair') || lowerQuestion.includes('guarantee')) {
-      const warrantyResponses = [
-        "Warranty is crucial for peace of mind! Most electronics come with 1-2 year manufacturer warranty covering manufacturing defects. Extended warranties are available for ₹2,000-5,000 extra. Apple offers excellent support with authorized service centers everywhere. Always buy from authorized dealers to ensure valid warranty coverage.",
-        "Good warranty coverage is essential! Premium brands like Apple, Samsung, and Sony offer comprehensive support with dedicated service centers. Budget brands typically provide 1-year warranty with good coverage. Pro tip: Register your product online immediately after purchase and keep all bills safe. What product are you considering?",
-        "Service and support vary by brand. Apple leads with seamless ecosystem support, Samsung has widespread service centers, while local brands like Lava and Micromax offer good regional support. For high-value purchases, consider extended warranty plans. Always check the warranty card and terms carefully before buying."
-      ];
-      return warrantyResponses[Math.floor(Math.random() * warrantyResponses.length)];
-    }
-
-    // Handle advice and tips
-    if (lowerQuestion.includes('advice') || lowerQuestion.includes('tip') || lowerQuestion.includes('how to') ||
-        lowerQuestion.includes('guide') || lowerQuestion.includes('help')) {
-      const adviceResponses = [
-        "Smart shopping tips: 1) Compare prices across platforms, 2) Read recent reviews (last 3 months), 3) Check return policies, 4) Look for cashback offers, 5) Consider future needs, not just current ones. For big purchases, wait for sales or use credit card rewards. What specific advice do you need?",
-        "Here's my shopping wisdom: Always research thoroughly, never buy impulsively on deals, check user reviews on multiple sites, and consider the total cost of ownership (including accessories and maintenance). For electronics, focus on reputable brands with good service networks. What's your shopping challenge?",
-        "Pro shopping advice: 1) Set a realistic budget first, 2) Make a wishlist and compare options, 3) Read specifications carefully, 4) Check compatibility with existing devices, 5) Buy from authorized sellers for warranty validity. For online shopping, use secure payment methods and track your orders. How can I assist you today?"
-      ];
-      return adviceResponses[Math.floor(Math.random() * adviceResponses.length)];
-    }
-
-    // Handle thank you responses
-    if (lowerQuestion.includes('thank') || lowerQuestion.includes('thanks') || lowerQuestion.includes('appreciate')) {
-      const thankResponses = [
-        "You're very welcome! I'm always here to help you make great shopping decisions. Feel free to ask if you need more recommendations or have any other questions. Happy shopping! 🛒",
-        "My pleasure! Shopping can be overwhelming, but I'm glad I could help. Remember, I'm here whenever you need advice on products, deals, or anything shopping-related. Have a great day!",
-        "Glad I could help! Don't hesitate to reach out anytime you need shopping assistance. Whether it's product research, price comparison, or finding the best deals, I'm your go-to shopping companion. 😊"
-      ];
-      return thankResponses[Math.floor(Math.random() * thankResponses.length)];
-    }
-    // Default conversational response
-    const defaultResponses = [
-      "That's an interesting question! I'd love to help you find the perfect solution. Could you tell me more about what you're looking for? For example, what's your budget, or what features are most important to you?",
-      "Great question! Shopping decisions are important, and I want to make sure you get exactly what you need. To give you the best advice, could you share a bit more about your requirements or preferences?",
-      "I'm here to help you make smart shopping decisions! Whether you're looking for the latest tech, fashion essentials, or home improvements, I can provide recommendations and insights. What specific product or category interests you?",
-      "Thanks for asking! I can help you navigate the vast world of online shopping in India. From finding the best deals to understanding product specifications, I'm your shopping companion. What would you like to explore today?"
-    ];
-
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    
+    // Default response
+    return "I'm here to help you with your shopping needs! I can provide product recommendations, price analysis, market trends, and shopping tips. Feel free to ask me about specific products or general shopping advice.";
   }
 }
 
