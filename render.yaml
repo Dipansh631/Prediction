@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: pricepredict-ai
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_SERP_API_KEY
+        sync: false
+      - key: VITE_GEMINI_API_KEY
+        sync: false
+      - key: VITE_CLICKUP_API_KEY
+        sync: false
