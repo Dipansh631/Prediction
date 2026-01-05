@@ -16,9 +16,10 @@ export const config = {
 
   // Gemini AI Configuration
   gemini: {
-    apiKey: import.meta.env.VITE_GEMINI_API_KEY,
+    apiKey: import.meta.env.PROD ? '' : import.meta.env.VITE_GEMINI_API_KEY, // Never expose API key in production
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-    isConfigured: !!import.meta.env.VITE_GEMINI_API_KEY,
+    isConfigured: !import.meta.env.PROD && !!import.meta.env.VITE_GEMINI_API_KEY, // Always false in production
+    enabled: !import.meta.env.PROD, // Disable AI features in production
   },
   
   // App Configuration

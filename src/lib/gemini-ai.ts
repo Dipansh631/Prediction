@@ -40,6 +40,18 @@ export class GeminiAiService {
   private useMockData: boolean;
 
   private constructor() {
+    // In production, always use mock data for stability and to avoid API key exposure
+    if (import.meta.env.PROD) {
+      this.apiKey = ''; // Never store API key in production
+      this.useMockData = true;
+      
+      if (config.debug.enabled) {
+        console.log('Production mode: Using mock data only (AI features disabled)');
+      }
+      return;
+    }
+
+    // Development mode: check API key configuration
     this.apiKey = GEMINI_API_KEY;
     
     if (config.debug.enabled) {
@@ -58,7 +70,7 @@ export class GeminiAiService {
     if (this.useMockData) {
       console.warn('GEMINI_API_KEY is not properly configured. Using mock data for demonstration.');
     } else {
-      // Test API connection in background
+      // Test API connection in background (development only)
       this.testApiConnection().then(success => {
         if (!success) {
           console.warn('Gemini API connection test failed. Falling back to mock data mode.');
@@ -76,8 +88,11 @@ export class GeminiAiService {
   }
 
   public forceMockMode(): void {
-    this.useMockData = true;
-    console.warn('Gemini API rate limited. Switching to mock data mode.');
+    // Only allow forcing mock mode in development
+    if (!import.meta.env.PROD) {
+      this.useMockData = true;
+      console.warn('Gemini API rate limited. Switching to mock data mode.');
+    }
   }
 
   public isUsingMockData(): boolean {
@@ -100,6 +115,11 @@ export class GeminiAiService {
   }
 
   public async testApiConnection(): Promise<boolean> {
+    // In production, skip API testing and return false to force mock mode
+    if (import.meta.env.PROD) {
+      return false;
+    }
+
     if (this.useMockData) {
       console.log('API test skipped - using mock data mode');
       return false;
@@ -117,6 +137,19 @@ export class GeminiAiService {
   }
 
   public async makeApiRequest(prompt: string): Promise<any> {
+    // Production: Always return mock data, never attempt API calls
+    if (import.meta.env.PROD) {
+      if (prompt.includes('"enhancedQuery"') || prompt.includes('"categories"') || prompt.includes('"marketAnalysis"')) {
+        // This is likely an enhanceSearchQuery request - return structured mock data
+        const query = this.extractQueryFromPrompt(prompt);
+        return this.generateMockSmartSearchResult(query);
+      } else {
+        // Return a mock response string for chat/general requests
+        return this.generateMockResponse(prompt);
+      }
+    }
+
+    // Development mode: Check if using mock data
     if (this.useMockData) {
       // Check if this is a structured data request (contains JSON structure keywords)
       if (prompt.includes('"enhancedQuery"') || prompt.includes('"categories"') || prompt.includes('"marketAnalysis"')) {
@@ -220,6 +253,11 @@ export class GeminiAiService {
   }
 
   private async makeRequestWithRetry(endpoint: string, prompt: string, signal: AbortSignal, maxRetries: number = 2): Promise<Response | null> {
+    // In production, never attempt API calls - return null to trigger mock fallback
+    if (import.meta.env.PROD) {
+      return null;
+    }
+
     let lastResponse: Response | null = null;
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -354,6 +392,11 @@ export class GeminiAiService {
 
   async enhanceSearchQuery(query: string): Promise<SmartSearchResult> {
     try {
+      // In production, always use mock data
+      if (import.meta.env.PROD) {
+        return this.generateMockSmartSearchResult(query);
+      }
+
       if (this.useMockData) {
         return this.generateMockSmartSearchResult(query);
       }
@@ -424,7 +467,8 @@ export class GeminiAiService {
 
   async categorizeProducts(products: any[]): Promise<ProductCategory[]> {
     try {
-      if (this.useMockData) {
+      // In production, always use mock data
+      if (import.meta.env.PROD || this.useMockData) {
         return this.generateMockCategories();
       }
 
@@ -468,7 +512,8 @@ export class GeminiAiService {
 
   async analyzeMarketTrends(query: string, products: any[]): Promise<MarketAnalysis> {
     try {
-      if (this.useMockData) {
+      // In production, always use mock data
+      if (import.meta.env.PROD || this.useMockData) {
         return this.generateMockMarketAnalysis();
       }
 
@@ -513,7 +558,8 @@ export class GeminiAiService {
 
   async getPersonalizedRecommendations(userQuery: string, searchHistory: string[] = []): Promise<ProductRecommendation[]> {
     try {
-      if (this.useMockData) {
+      // In production, always use mock data
+      if (import.meta.env.PROD || this.useMockData) {
         return this.generateMockRecommendations();
       }
 
