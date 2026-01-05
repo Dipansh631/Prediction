@@ -152,6 +152,9 @@ export class GeminiAiService {
           } else if (response) {
             lastError = `Endpoint ${endpoint}: ${response.status} ${response.statusText}`;
             console.warn(`Failed to use endpoint ${endpoint}:`, response.status, response.statusText);
+          } else {
+            // makeRequestWithRetry returned null, meaning we switched to mock data
+            return this.generateMockResponse(prompt);
           }
         } catch (fetchError) {
           // Check if it's an abort error
@@ -209,7 +212,7 @@ export class GeminiAiService {
     }
   }
 
-  private async makeRequestWithRetry(endpoint: string, prompt: string, signal: AbortSignal, maxRetries: number = 3): Promise<Response | null> {
+  private async makeRequestWithRetry(endpoint: string, prompt: string, signal: AbortSignal, maxRetries: number = 2): Promise<Response | null> {
     let lastResponse: Response | null = null;
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -240,12 +243,19 @@ export class GeminiAiService {
           return response;
         }
 
-        // If it's a 429 (Too Many Requests), retry with exponential backoff
-        if (response.status === 429 && attempt < maxRetries) {
-          const backoffMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // Exponential backoff with jitter
-          console.warn(`Rate limited (429). Retrying in ${backoffMs}ms... (attempt ${attempt + 1}/${maxRetries + 1})`);
-          await new Promise(resolve => setTimeout(resolve, backoffMs));
-          continue;
+        // If it's a 429 (Too Many Requests), wait longer and retry fewer times
+        if (response.status === 429) {
+          if (attempt < maxRetries) {
+            const backoffMs = Math.pow(2, attempt) * 2000 + Math.random() * 1000; // Longer backoff: 2s, 4s
+            console.warn(`Rate limited (429). Retrying in ${backoffMs}ms... (attempt ${attempt + 1}/${maxRetries + 1})`);
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            continue;
+          } else {
+            // If all retries failed with 429, switch to mock data immediately
+            console.warn('All Gemini API retries failed with 429. Switching to mock data mode.');
+            this.forceMockMode();
+            return null; // Return null to trigger mock data fallback
+          }
         }
 
         // For other errors, don't retry
@@ -255,9 +265,9 @@ export class GeminiAiService {
           throw fetchError;
         }
         
-        // For network errors, retry
-        if (attempt < maxRetries) {
-          const backoffMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+        // For network errors, retry once
+        if (attempt < 1) {
+          const backoffMs = 1000 + Math.random() * 1000;
           console.warn(`Network error. Retrying in ${backoffMs}ms... (attempt ${attempt + 1}/${maxRetries + 1})`);
           await new Promise(resolve => setTimeout(resolve, backoffMs));
           continue;

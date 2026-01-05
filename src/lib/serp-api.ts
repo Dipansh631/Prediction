@@ -2,8 +2,8 @@
 import { config } from './config';
 
 const SERP_API_KEY = config.serp.apiKey;
-// Use direct API URL for production, proxy for development
-const SERP_BASE_URL = import.meta.env.DEV ? '/api/serp/search.json' : config.serp.baseUrl;
+// Use CORS proxy for production to avoid CORS issues
+const SERP_BASE_URL = import.meta.env.DEV ? '/api/serp/search.json' : 'https://corsproxy.org/?https://serpapi.com/search.json';
 
 export interface SerpProduct {
   title: string;
