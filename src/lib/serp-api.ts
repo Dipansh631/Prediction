@@ -32,6 +32,18 @@ export class SerpApiService {
   private useMockData: boolean;
 
   private constructor() {
+    // In production, always use mock data for stability
+    if (import.meta.env.PROD === true) {
+      this.apiKey = '';
+      this.useMockData = true;
+      
+      if (config.debug.enabled) {
+        console.log('Production mode: Using mock data only (SerpAPI disabled)');
+      }
+      return;
+    }
+
+    // Development mode: check API key configuration
     this.apiKey = SERP_API_KEY;
     this.useMockData = !this.apiKey;
     
@@ -123,6 +135,11 @@ export class SerpApiService {
   }
 
   private async makeApiRequest(url: string, params: URLSearchParams): Promise<any> {
+    // SAFETY CHECK: Production must NEVER make external HTTP calls
+    if (import.meta.env.PROD === true) {
+      throw new Error('Production builds must not make external API calls');
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       console.log('Request timeout reached, aborting...');
@@ -179,6 +196,19 @@ export class SerpApiService {
   }
 
   async searchProducts(query: string, location: string = 'India'): Promise<SerpSearchResult> {
+    // HARD GUARD: Production must NEVER make external HTTP calls
+    if (import.meta.env.PROD === true) {
+      const mockProducts = this.generateMockProducts(query);
+      return {
+        products: mockProducts,
+        total_results: mockProducts.length,
+        search_metadata: {
+          status: 'Success (Production Mock Data)',
+          created_at: new Date().toISOString()
+        }
+      };
+    }
+
     try {
       if (config.debug.enabled) {
         console.log('Searching products with query:', query, 'API Key present:', !!this.apiKey);
@@ -225,7 +255,8 @@ export class SerpApiService {
           data = await this.makeApiRequest(config.serp.baseUrl, params);
         }
       } else {
-        // In production, use CORS proxy
+        // This code should NEVER execute in production due to HARD GUARD above
+        // But keeping as safety net for development builds
         const proxyUrl = 'https://api.allorigins.win/get';
         const targetUrl = `${config.serp.baseUrl}?${params}`;
         const proxyParams = new URLSearchParams({

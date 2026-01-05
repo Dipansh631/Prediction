@@ -2,9 +2,9 @@
 export const config = {
   // Serp API Configuration
   serp: {
-    apiKey: import.meta.env.VITE_SERP_API_KEY,
+    apiKey: import.meta.env.PROD ? '' : import.meta.env.VITE_SERP_API_KEY, // Never expose API key in production
     baseUrl: 'https://serpapi.com/search.json',
-    isConfigured: !!import.meta.env.VITE_SERP_API_KEY,
+    isConfigured: !import.meta.env.PROD && !!import.meta.env.VITE_SERP_API_KEY, // Always false in production
   },
   
   // ClickUp API Configuration
